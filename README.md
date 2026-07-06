@@ -420,7 +420,7 @@ This project is licensed under the **MIT License**.
 
 # 👨‍💻 Author
 
-**Shivansh Gupta**
+**Sweta Koshta**
 
 B.Tech Computer Science (AI & ML)
 
