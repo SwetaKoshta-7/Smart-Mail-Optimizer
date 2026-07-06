@@ -24,33 +24,37 @@ export default function EmailDetails({ email }) {
 
       {/* Header */}
 
-      <div className="border-b px-8 py-6">
+      <div className="sticky top-0 bg-white border-b px-8 py-6 z-10">
 
         <div className="flex justify-between items-start">
 
-          <div>
+          <div className="flex gap-4">
 
-            <h1 className="text-2xl font-bold text-gray-900">
-              {email.subject}
-            </h1>
+            <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
 
-            <div className="flex items-center gap-3 mt-3">
+              {email.sender?.charAt(0)?.toUpperCase()}
 
-              <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-semibold">
-                {email.sender?.charAt(0)?.toUpperCase()}
-              </div>
+            </div>
 
-              <div>
+            <div>
 
-                <h2 className="font-semibold">
-                  {email.sender}
-                </h2>
+              <h1 className="text-3xl font-bold text-slate-900">
 
-                <p className="text-sm text-gray-500">
-                  {email.sender_email || "unknown@email.com"}
-                </p>
+                {email.subject}
 
-              </div>
+              </h1>
+
+              <p className="text-gray-600 mt-2">
+
+                {email.sender}
+
+              </p>
+
+              <p className="text-sm text-gray-500">
+
+                {email.sender_email || "unknown@email.com"}
+
+              </p>
 
             </div>
 
@@ -59,32 +63,10 @@ export default function EmailDetails({ email }) {
           <div className="text-right">
 
             <p className="text-sm text-gray-500">
+
               {email.date}
+
             </p>
-
-            <div className="flex gap-2 mt-4">
-
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Reply size={18} />
-              </button>
-
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Forward size={18} />
-              </button>
-
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Archive size={18} />
-              </button>
-
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Trash2 size={18} />
-              </button>
-
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Star size={18} />
-              </button>
-
-            </div>
 
           </div>
 
@@ -94,68 +76,44 @@ export default function EmailDetails({ email }) {
 
       {/* AI Summary */}
 
-      {email.ai_summary && (
-        <div className="mx-8 mt-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-5">
+      <div className="mx-8 mt-6 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-6">
 
-          <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-3 mb-3">
 
-            <Sparkles
-              className="text-purple-600"
-              size={20}
-            />
+          <Sparkles className="text-purple-600" />
 
-            <h2 className="font-semibold text-purple-700">
-              AI Summary
-            </h2>
+          <h2 className="font-semibold text-purple-700">
 
-          </div>
+            AI Summary
 
-          <p className="text-gray-700">
-            {email.ai_summary}
-          </p>
+          </h2>
 
         </div>
-      )}
+
+        <p className="leading-7 text-gray-700">
+
+          {email.ai_summary}
+
+        </p>
+
+      </div>
 
       {/* Labels */}
 
-      <div className="flex gap-3 px-8 mt-6 flex-wrap">
+      <div className="flex gap-2 flex-wrap px-8 mt-6">
 
-        {email.priority && (
+        {email.labels?.map((label) => (
+
           <span
-            className={`px-3 py-1 rounded-full text-sm font-medium
-
-            ${
-              email.priority === "High"
-                ? "bg-red-100 text-red-700"
-                : email.priority === "Medium"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-green-100 text-green-700"
-            }`}
+            key={label}
+            className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm"
           >
-            {email.priority} Priority
-          </span>
-        )}
 
-        {email.category && (
-          <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
-            {email.category}
-          </span>
-        )}
+            {label}
 
-        {email.is_spam === false && (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
-            <ShieldCheck size={15} />
-            Safe
           </span>
-        )}
 
-        {email.has_attachment && (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">
-            <Paperclip size={15} />
-            Attachment
-          </span>
-        )}
+        ))}
 
       </div>
 
@@ -222,26 +180,69 @@ export default function EmailDetails({ email }) {
 
       </div>
 
+      {/* Attatchments 
+      
+      <div className="grid grid-cols-2 gap-4 mt-6">
+
+        {email.attachments.map((file) => (
+
+          <button
+            key={file.name}
+            className="rounded-xl border hover:border-blue-400 hover:shadow-md p-4 flex items-center justify-between transition"
+          >
+
+            <div className="flex items-center gap-3">
+
+              <Paperclip />
+
+              <div>
+
+                <p className="font-semibold">
+
+                  {file.name}
+
+                </p>
+
+                <p className="text-sm text-gray-500">
+
+                  {file.size}
+
+                </p>
+
+              </div>
+
+            </div>
+
+          </button>
+
+        ))}
+
+      </div>
+
+      */}
+
       {/* Footer */}
 
-      <div className="border-t px-8 py-5 flex justify-between items-center">
+      <div className="border-t px-8 py-5 flex justify-between items-center bg-white">
 
-        <div className="text-sm text-gray-500 flex items-center gap-2">
+        <p className="text-sm text-gray-500">
 
-          <Clock size={16} />
+          Received on {email.date}
 
-          Received {email.date}
-
-        </div>
+        </p>
 
         <div className="flex gap-3">
 
-          <button className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+          <button className="rounded-xl bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition">
+
             Reply
+
           </button>
 
-          <button className="px-5 py-2 rounded-lg border hover:bg-gray-100 transition">
+          <button className="rounded-xl border px-6 py-2 hover:bg-gray-100 transition">
+
             Forward
+
           </button>
 
         </div>

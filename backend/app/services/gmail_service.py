@@ -1,179 +1,3 @@
-# # backend/app/services/gmail_service.py
-
-# from datetime import datetime
-
-# from googleapiclient.discovery import build
-# from googleapiclient.errors import HttpError
-
-# from app.database.mongodb import emails
-
-
-# class GmailService:
-#     def __init__(self, credentials):
-#         """
-#         Initialize Gmail API service.
-#         """
-#         self.service = build(
-#             "gmail",
-#             "v1",
-#             credentials=credentials
-#         )
-
-#     # ==========================================================
-#     # Fetch Latest Email IDs
-#     # ==========================================================
-#     def fetch_message_ids(self, max_results: int = 20):
-#         """
-#         Fetch the latest Gmail message IDs.
-#         """
-
-#         try:
-#             response = (
-#                 self.service.users()
-#                 .messages()
-#                 .list(
-#                     userId="me",
-#                     maxResults=max_results
-#                 )
-#                 .execute()
-#             )
-
-#             return response.get("messages", [])
-
-#         except HttpError as e:
-#             print(f"Gmail API Error: {e}")
-#             return []
-
-#     # ==========================================================
-#     # Fetch Email Metadata
-#     # ==========================================================
-#     def fetch_message(self, message_id: str):
-#         """
-#         Fetch email metadata only.
-#         """
-
-#         try:
-#             message = (
-#                 self.service.users()
-#                 .messages()
-#                 .get(
-#                     userId="me",
-#                     id=message_id,
-#                     format="metadata",
-#                     metadataHeaders=[
-#                         "From",
-#                         "Subject",
-#                         "Date",
-#                     ],
-#                 )
-#                 .execute()
-#             )
-
-#             return message
-
-#         except HttpError as e:
-#             print(f"Gmail API Error: {e}")
-#             return None
-
-#     # ==========================================================
-#     # Parse Email Metadata
-#     # ==========================================================
-
-#     def parse_message(self, message):
-#         """
-#         Convert Gmail API response into the application's email model.
-#         """
-
-#         headers = message.get("payload", {}).get("headers", [])
-
-#         sender = ""
-#         subject = ""
-#         date = ""
-
-#         for header in headers:
-
-#             name = header.get("name", "")
-#             value = header.get("value", "")
-
-#             if name == "From":
-#                 sender = value
-
-#             elif name == "Subject":
-#                 subject = value
-
-#             elif name == "Date":
-#                 date = value
-
-#         return {
-#             "gmail_id": message.get("id"),
-#             "sender": sender,
-#             "subject": subject,
-#             "snippet": message.get("snippet", ""),
-#             "date": date,
-#             "labels": message.get("labelIds", [])
-#         }
-
-#     # ==========================================================
-#     # Save Email to MongoDB
-#     # ==========================================================
-
-#     async def save_to_database(self, email_data: dict):
-#         """
-#         Save email to MongoDB.
-#         Skip if the email already exists.
-#         """
-
-#         existing = await emails.find_one(
-#             {"gmail_id": email_data["gmail_id"]}
-#         )
-
-#         if existing:
-#             return existing
-
-#         document = {
-#             "gmail_id": email_data["gmail_id"],
-#             "sender": email_data["sender"],
-#             "subject": email_data["subject"],
-#             "snippet": email_data["snippet"],
-#             "date": email_data["date"],
-#             "labels": email_data["labels"],
-#         }
-
-#         result = await emails.insert_one(document)
-
-#         document["_id"] = str(result.inserted_id)
-
-#         return document
-
-#     # ==========================================================
-#     # Fetch + Parse + Save
-#     # ==========================================================
-#     async def fetch_and_store_emails(self, max_results: int = 20):
-#         """
-#         Fetch latest email metadata
-#         and save to MongoDB.
-#         """
-
-#         message_ids = self.fetch_message_ids(max_results)
-
-#         stored_emails = []
-
-#         for msg in message_ids:
-
-#             metadata = self.fetch_message(msg["id"])
-
-#             if metadata is None:
-#                 continue
-
-#             parsed_email = self.parse_message(metadata)
-
-#             await self.save_to_database(parsed_email)
-
-#             stored_emails.append(parsed_email)
-
-#         return stored_emails
-
-
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -234,7 +58,7 @@ class GmailService:
                 .get(
                     userId="me",
                     id=message_id,
-                    format="metadata",
+                    format="full",
                     metadataHeaders=[
                         "From",
                         "Subject",
@@ -299,12 +123,30 @@ class GmailService:
 
             "date": date,
 
+            "internal_date": int(message.get("internalDate", 0)),
+
             "labels": message.get(
                 "labelIds",
                 [],
             ),
-        }
 
+            # --------------------------
+            # Flags
+            # --------------------------
+
+            "is_read": "UNREAD" not in message.get("labelIds", []),
+
+            "is_starred": "STARRED" in message.get("labelIds", []),
+
+            "is_important": "IMPORTANT" in message.get("labelIds", []),
+
+            "is_spam": "SPAM" in message.get("labelIds", []),
+
+            "is_trash": "TRASH" in message.get("labelIds", []),
+
+            "is_sent": "SENT" in message.get("labelIds", []),
+
+        }
     # --------------------------------------------------
     # Save Email
     # --------------------------------------------------
@@ -331,8 +173,21 @@ class GmailService:
 
             "date": email_data["date"],
 
+            "internal_date": email_data["internal_date"],
+
             "labels": email_data["labels"],
-        }
+
+            "is_read": email_data["is_read"],
+
+            "is_starred": email_data["is_starred"],
+
+            "is_important": email_data["is_important"],
+
+            "is_spam": email_data["is_spam"],
+
+            "is_trash": email_data["is_trash"],
+
+            "is_sent": email_data["is_sent"],           }
 
         result = await emails.update_one(
 
@@ -357,7 +212,7 @@ class GmailService:
             print(f"♻ Updated : {email_data['subject']}")
 
     # --------------------------------------------------
-    # Fetch + Store
+    # Fetch + Store // current limit is 10,, increase more if needed
     # --------------------------------------------------
 
     async def fetch_and_store_emails(
