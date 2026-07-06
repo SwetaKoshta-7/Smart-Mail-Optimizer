@@ -14,46 +14,32 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const menu = [
-  {
-    name: "Inbox",
-    icon: Inbox,
-    badge: 128,
-    label: "INBOX",
-  },
-  {
-    name: "Important",
-    icon: CircleAlert,
-    badge: 18,
-    label: "IMPORTANT",
-  },
-  {
-    name: "Unread",
-    icon: MailOpen,
-    label: "UNREAD",
-  },
-  {
-    name: "Sent",
-    icon: Send,
-    label: "SENT",
-  },
-  {
-    name: "Spam",
-    icon: ShieldAlert,
-    badge: 32,
-    label: "SPAM",
-  },
-  {
-    name: "Trash",
-    icon: Trash2,
-    label: "TRASH",
-  },
+import { useEffect, useState } from "react";
+
+import { useAuth } from "../../hooks/useAuth";
+import emailService from "../../services/emailService";
+
+const menuBase = [
+  { name: "Inbox", icon: Inbox, label: "INBOX" },
+  { name: "Important", icon: CircleAlert, label: "IMPORTANT" },
+  { name: "Unread", icon: MailOpen, label: "UNREAD" },
+  { name: "Sent", icon: Send, label: "SENT" },
+  { name: "Spam", icon: ShieldAlert, label: "SPAM" },
+  { name: "Trash", icon: Trash2, label: "TRASH" },
 ];
 
-export default function Sidebar({
-    activeMenu,
-    onMenuChange,
-}) {
+export default function Sidebar({ activeMenu, onMenuChange }) {
+  const { user } = useAuth();
+  const [counts, setCounts] = useState({});
+
+  useEffect(() => {
+    emailService.getCounts().then(setCounts).catch(() => {});
+  }, [activeMenu]); // refetch when switching folders, so counts stay fresh
+
+  const menu = menuBase.map((item) => ({
+    ...item,
+    badge: counts[item.label] || undefined,
+  }));
 
     const labels = [
         "Work",
@@ -308,29 +294,17 @@ export default function Sidebar({
             </div>
 
             <div className="border-t px-5 py-4">
-
               <div className="flex items-center gap-3">
-
-                  <img
-                      src="https://ui-avatars.com/api/?name=User"
-                      className="w-11 h-11 rounded-full"
-                  />
-
-                  <div>
-
-                      <p className="font-semibold">
-                          Shivansh Gupta
-                      </p>
-
-                      <p className="text-sm text-gray-500">
-                          Connected
-                      </p>
-
-                  </div>
-
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}`}
+                  className="w-11 h-11 rounded-full"
+                />
+                <div>
+                  <p className="font-semibold">{user?.name || "Loading..."}</p>
+                  <p className="text-sm text-gray-500">Connected</p>
+                </div>
               </div>
-
-          </div>
+            </div>
 
         </aside>
 

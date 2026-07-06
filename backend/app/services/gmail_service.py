@@ -264,3 +264,116 @@ class GmailService:
         print("===================================\n")
 
         return stored
+    
+
+# --------------------------------------------------
+    # Modify Labels (read/star/archive/trash)
+    # --------------------------------------------------
+
+    def modify_labels(self, message_id, add=None, remove=None):
+        try:
+            body = {}
+            if add:
+                body["addLabelIds"] = add
+            if remove:
+                body["removeLabelIds"] = remove
+
+            result = (
+                self.service.users()
+                .messages()
+                .modify(userId="me", id=message_id, body=body)
+                .execute()
+            )
+
+            return result
+
+        except HttpError as e:
+            print(f"❌ Failed to modify labels for {message_id}")
+            print(e)
+            return None
+
+    def mark_as_read(self, message_id):
+        return self.modify_labels(message_id, remove=["UNREAD"])
+
+    def mark_as_unread(self, message_id):
+        return self.modify_labels(message_id, add=["UNREAD"])
+
+    def star_message(self, message_id):
+        return self.modify_labels(message_id, add=["STARRED"])
+
+    def unstar_message(self, message_id):
+        return self.modify_labels(message_id, remove=["STARRED"])
+
+    def archive_message(self, message_id):
+        return self.modify_labels(message_id, remove=["INBOX"])
+
+    def trash_message(self, message_id):
+        try:
+            return (
+                self.service.users()
+                .messages()
+                .trash(userId="me", id=message_id)
+                .execute()
+            )
+        except HttpError as e:
+            print(f"❌ Failed to trash {message_id}")
+            print(e)
+            return None
+
+    # --------------------------------------------------
+    # Send Email (compose / reply / forward)
+    # --------------------------------------------------
+
+    def send_message(self, to, subject, body, thread_id=None, in_reply_to=None):
+        import base64
+        from email.mime.text import MIMEText
+
+        message = MIMEText(body)
+        message["to"] = to
+        message["subject"] = subject
+
+        if in_reply_to:
+            message["In-Reply-To"] = in_reply_to
+            message["References"] = in_reply_to
+
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        payload = {"raw": raw}
+        if thread_id:
+            payload["threadId"] = thread_id
+
+        try:
+            return (
+                self.service.users()
+                .messages()
+                .send(userId="me", body=payload)
+                .execute()
+            )
+        except HttpError as e:
+            print("❌ Failed to send message")
+            print(e)
+            return None
+
+    # --------------------------------------------------
+    # Fetch Full Body (for summary/smart reply — snippet isn't enough)
+    # --------------------------------------------------
+
+    def get_full_body(self, message):
+        import base64
+
+        def extract(parts):
+            for part in parts:
+                if part.get("mimeType") == "text/plain" and "data" in part.get("body", {}):
+                    return base64.urlsafe_b64decode(part["body"]["data"]).decode(errors="ignore")
+                if "parts" in part:
+                    result = extract(part["parts"])
+                    if result:
+                        return result
+            return ""
+
+        payload = message.get("payload", {})
+
+        if "data" in payload.get("body", {}):
+            return base64.urlsafe_b64decode(payload["body"]["data"]).decode(errors="ignore")
+
+        return extract(payload.get("parts", [])) or message.get("snippet", "")

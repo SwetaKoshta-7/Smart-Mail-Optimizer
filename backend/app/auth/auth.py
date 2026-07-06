@@ -220,3 +220,21 @@ async def callback(request: Request):
             status_code=500,
             detail=str(e)
         )
+    
+
+@router.get("/me")
+async def get_current_user(request: Request):
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    return {
+        "google_id": request.session["user_id"],
+        "email": request.session["user_email"],
+        "name": request.session.get("user_name"),
+    }
+
+
+@router.post("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return {"success": True}
