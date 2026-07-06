@@ -18,12 +18,15 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { EmailProvider } from './context/EmailContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <EmailProvider>
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </EmailProvider>
     </AuthProvider>
   </React.StrictMode>,
