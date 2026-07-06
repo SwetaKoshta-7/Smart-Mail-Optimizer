@@ -1,0 +1,10 @@
+fastapi 
+uvicorn
+google-api-python-client
+google-auth
+google-auth-oauthlib
+python-dotenv
+pymongo
+motor
+
+# to run : uvicorn main:app --reload

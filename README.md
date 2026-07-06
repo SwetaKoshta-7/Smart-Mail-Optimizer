@@ -421,6 +421,7 @@ This project is licensed under the **MIT License**.
 # 👨‍💻 Author
 
 **Sweta Koshta**
+
 **Shivansh Gupta**
 
 B.Tech Computer Science (AI & ML)
