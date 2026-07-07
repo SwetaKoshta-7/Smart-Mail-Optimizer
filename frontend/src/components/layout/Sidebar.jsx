@@ -1,129 +1,3 @@
-// import {
-//   Inbox,
-//   CircleAlert,
-//   MailOpen,
-//   Send,
-//   ShieldAlert,
-//   Trash2,
-//   BarChart3,
-//   Settings,
-//   PenSquare,
-// } from "lucide-react";
-
-// const menu = [
-//   {
-//     name: "Inbox",
-//     icon: Inbox,
-//     active: true,
-//   },
-//   {
-//     name: "Important",
-//     icon: CircleAlert,
-//   },
-//   {
-//     name: "Unread",
-//     icon: MailOpen,
-//   },
-//   {
-//     name: "Sent",
-//     icon: Send,
-//   },
-//   {
-//     name: "Spam",
-//     icon: ShieldAlert,
-//   },
-//   {
-//     name: "Trash",
-//     icon: Trash2,
-//   },
-//   {
-//     name: "Analytics",
-//     icon: BarChart3,
-//   },
-//   {
-//     name: "Settings",
-//     icon: Settings,
-//   },
-// ];
-
-// export default function Sidebar() {
-//   return (
-//     <div className="h-full flex flex-col">
-
-//       {/* Logo */}
-
-//       <div className="p-6 border-b">
-
-//         <h1 className="text-2xl font-bold text-blue-600">
-//           Smart Mail
-//         </h1>
-
-//         <p className="text-sm text-gray-500">
-//           Optimizer
-//         </p>
-
-//       </div>
-
-//       {/* Compose */}
-
-//       <div className="p-5">
-
-//         <button className="w-full bg-blue-600 text-white rounded-xl py-4 flex items-center justify-center gap-2 hover:bg-blue-700 transition">
-
-//           <PenSquare size={20} />
-
-//           Compose
-
-//         </button>
-
-//       </div>
-
-//       {/* Menu */}
-
-//       <nav className="flex-1 px-3">
-
-//         <div className="space-y-2">
-
-//           {menu.map((item) => {
-//             const Icon = item.icon;
-
-//             return (
-//               <button
-//                 key={item.name}
-//                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition
-//                 ${
-//                   item.active
-//                     ? "bg-blue-50 text-blue-600 font-semibold"
-//                     : "text-gray-700 hover:bg-gray-100"
-//                 }`}
-//               >
-//                 <Icon size={20} />
-
-//                 {item.name}
-//               </button>
-//             );
-//           })}
-
-//         </div>
-
-//       </nav>
-
-//       <div className="p-5 border-t">
-
-//         <p className="text-sm text-gray-500">
-//           Smart Mail Optimizer
-//         </p>
-
-//         <p className="text-xs text-gray-400">
-//           AI Powered Email Manager
-//         </p>
-
-//       </div>
-
-//     </div>
-//   );
-// }
-
 import {
   Mail,
   Inbox,
@@ -140,46 +14,32 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const menu = [
-  {
-    name: "Inbox",
-    icon: Inbox,
-    badge: 128,
-    label: "INBOX",
-  },
-  {
-    name: "Important",
-    icon: CircleAlert,
-    badge: 18,
-    label: "IMPORTANT",
-  },
-  {
-    name: "Unread",
-    icon: MailOpen,
-    label: "UNREAD",
-  },
-  {
-    name: "Sent",
-    icon: Send,
-    label: "SENT",
-  },
-  {
-    name: "Spam",
-    icon: ShieldAlert,
-    badge: 32,
-    label: "SPAM",
-  },
-  {
-    name: "Trash",
-    icon: Trash2,
-    label: "TRASH",
-  },
+import { useEffect, useState } from "react";
+
+import { useAuth } from "../../hooks/useAuth";
+import emailService from "../../services/emailService";
+
+const menuBase = [
+  { name: "Inbox", icon: Inbox, label: "INBOX" },
+  { name: "Important", icon: CircleAlert, label: "IMPORTANT" },
+  { name: "Unread", icon: MailOpen, label: "UNREAD" },
+  { name: "Sent", icon: Send, label: "SENT" },
+  { name: "Spam", icon: ShieldAlert, label: "SPAM" },
+  { name: "Trash", icon: Trash2, label: "TRASH" },
 ];
 
-export default function Sidebar({
-    activeMenu,
-    onMenuChange,
-}) {
+export default function Sidebar({ activeMenu, onMenuChange }) {
+  const { user } = useAuth();
+  const [counts, setCounts] = useState({});
+
+  useEffect(() => {
+    emailService.getCounts().then(setCounts).catch(() => {});
+  }, [activeMenu]); // refetch when switching folders, so counts stay fresh
+
+  const menu = menuBase.map((item) => ({
+    ...item,
+    badge: counts[item.label] || undefined,
+  }));
 
     const labels = [
         "Work",
@@ -434,29 +294,17 @@ export default function Sidebar({
             </div>
 
             <div className="border-t px-5 py-4">
-
               <div className="flex items-center gap-3">
-
-                  <img
-                      src="https://ui-avatars.com/api/?name=User"
-                      className="w-11 h-11 rounded-full"
-                  />
-
-                  <div>
-
-                      <p className="font-semibold">
-                          Shivansh Gupta
-                      </p>
-
-                      <p className="text-sm text-gray-500">
-                          Connected
-                      </p>
-
-                  </div>
-
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}`}
+                  className="w-11 h-11 rounded-full"
+                />
+                <div>
+                  <p className="font-semibold">{user?.name || "Loading..."}</p>
+                  <p className="text-sm text-gray-500">Connected</p>
+                </div>
               </div>
-
-          </div>
+            </div>
 
         </aside>
 

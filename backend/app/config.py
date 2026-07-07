@@ -11,3 +11,5 @@ MONGO_URI = os.getenv("MONGO_URI")
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

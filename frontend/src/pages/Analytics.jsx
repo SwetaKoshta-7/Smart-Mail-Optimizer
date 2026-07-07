@@ -1,17 +1,24 @@
-import { useState } from "react";
+import DashboardStats from "../components/analytics/DashboardStats";
+import ActivityChart from "../components/analytics/ActivityChart";
+import CategoryPieChart from "../components/analytics/CategoryPieChart";
+import AIInsights from "../components/ai/AIInsights";
 
-import DashboardLayout from "../components/layout/DashboardLayout";
-import EmailList from "../components/email/EmailList";
-
-export default function Dashboard() {
-  const [activeMenu, setActiveMenu] = useState("INBOX");
-
+export default function Analytics() {
   return (
-    <DashboardLayout
-      activeMenu={activeMenu}
-      onMenuChange={setActiveMenu}
-    >
-      <EmailList activeMenu={activeMenu} />
-    </DashboardLayout>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">Analytics</h1>
+        <p className="text-gray-500 text-sm mt-1">Overview of your inbox activity</p>
+      </div>
+
+      <DashboardStats />
+
+      <AIInsights />
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <ActivityChart />
+        <CategoryPieChart />
+      </div>
+    </div>
   );
 }

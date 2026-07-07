@@ -6,5 +6,6 @@ google-auth-oauthlib
 python-dotenv
 pymongo
 motor
+google-generativeai
 
 # to run : uvicorn main:app --reload
